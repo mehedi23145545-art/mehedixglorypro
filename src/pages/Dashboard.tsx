@@ -105,7 +105,7 @@ const Dashboard = () => {
           {couponMsg && <p className="text-sm mt-2 text-muted-foreground">{couponMsg}</p>}
         </div>
 
-        <GuildFetch region={profile.region} onGuildFetched={() => setGuildReady(true)} />
+        <GuildFetch region={profile.region as "bd" | "ind"} onGuildFetched={() => setGuildReady(true)} />
 
         <PackageSelector packages={regionPackages} selected={selectedPkg} onSelect={setSelectedPkg} credits={profile.credits} />
 

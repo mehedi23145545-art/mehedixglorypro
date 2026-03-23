@@ -1,34 +1,36 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Eye, EyeOff } from "lucide-react";
+import { Zap, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signIn } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    // Mock login — admin check
-    if (email === "mehedi23145545@gmail.com" && password === "8gcmic44") {
-      localStorage.setItem("user", JSON.stringify({ id: "admin-001", email, credits: 99999, region: "bd", isAdmin: true }));
-      navigate("/admin");
-    } else if (email && password.length >= 4) {
-      localStorage.setItem("user", JSON.stringify({ id: "user-" + Date.now(), email, credits: 0, region: "bd", isAdmin: false }));
-      navigate("/dashboard");
+    setLoading(true);
+    const { error } = await signIn(email, password);
+    setLoading(false);
+    if (error) {
+      setError(error);
     } else {
-      setError("Invalid email or password");
+      // Navigation will be handled by auth state change
+      navigate("/dashboard");
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 relative">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/3 left-1/3 w-80 h-80 rounded-full opacity-10 blur-3xl" style={{ background: "hsl(160, 100%, 45%)" }} />
+        <div className="absolute top-1/3 left-1/3 w-80 h-80 rounded-full opacity-10 blur-3xl" style={{ background: "hsl(var(--primary))" }} />
       </div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-strong w-full max-w-md p-8 relative z-10">
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -36,7 +38,7 @@ const Login = () => {
           <span className="font-display text-lg font-bold gradient-text">MEHEDI X GLORY</span>
         </div>
         <h2 className="font-display text-xl font-bold text-center mb-6 text-foreground">Welcome Back</h2>
-        {error && <div className="mb-4 p-3 rounded-lg text-sm text-center" style={{ background: "hsl(0 80% 55% / 0.15)", color: "hsl(0, 80%, 55%)" }}>{error}</div>}
+        {error && <div className="mb-4 p-3 rounded-lg text-sm text-center bg-destructive/15 text-destructive">{error}</div>}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Email</label>
@@ -49,7 +51,10 @@ const Login = () => {
               {showPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
-          <button type="submit" className="btn-neon w-full">Login</button>
+          <button type="submit" disabled={loading} className="btn-neon w-full flex items-center justify-center gap-2">
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Logging in..." : "Login"}
+          </button>
         </form>
         <p className="text-center text-sm text-muted-foreground mt-6">
           Don't have an account? <Link to="/register" className="neon-text-green hover:underline">Register</Link>

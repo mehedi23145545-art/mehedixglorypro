@@ -14,16 +14,261 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bots: {
+        Row: {
+          assigned_to: string | null
+          created_at: string
+          id: string
+          password: string
+          status: string
+          uid: string
+        }
+        Insert: {
+          assigned_to?: string | null
+          created_at?: string
+          id?: string
+          password: string
+          status?: string
+          uid: string
+        }
+        Update: {
+          assigned_to?: string | null
+          created_at?: string
+          id?: string
+          password?: string
+          status?: string
+          uid?: string
+        }
+        Relationships: []
+      }
+      coupon_redemptions: {
+        Row: {
+          coupon_id: string
+          id: string
+          redeemed_at: string
+          user_id: string
+        }
+        Insert: {
+          coupon_id: string
+          id?: string
+          redeemed_at?: string
+          user_id: string
+        }
+        Update: {
+          coupon_id?: string
+          id?: string
+          redeemed_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coupon_redemptions_coupon_id_fkey"
+            columns: ["coupon_id"]
+            isOneToOne: false
+            referencedRelation: "coupons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coupons: {
+        Row: {
+          code: string
+          created_at: string
+          credit_amount: number
+          expiry_date: string | null
+          id: string
+          status: string
+          usage_limit: number
+          used_count: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          credit_amount: number
+          expiry_date?: string | null
+          id?: string
+          status?: string
+          usage_limit?: number
+          used_count?: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          credit_amount?: number
+          expiry_date?: string | null
+          id?: string
+          status?: string
+          usage_limit?: number
+          used_count?: number
+        }
+        Relationships: []
+      }
+      instances: {
+        Row: {
+          bot_count: number
+          earned_glory: number
+          glory_per_5min: number
+          guild_id: string
+          guild_name: string
+          id: string
+          region: string
+          started_at: string
+          status: string
+          target_glory: number
+          user_id: string
+        }
+        Insert: {
+          bot_count: number
+          earned_glory?: number
+          glory_per_5min: number
+          guild_id: string
+          guild_name: string
+          id?: string
+          region: string
+          started_at?: string
+          status?: string
+          target_glory: number
+          user_id: string
+        }
+        Update: {
+          bot_count?: number
+          earned_glory?: number
+          glory_per_5min?: number
+          guild_id?: string
+          guild_name?: string
+          id?: string
+          region?: string
+          started_at?: string
+          status?: string
+          target_glory?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
+      packages: {
+        Row: {
+          bot_count: number
+          created_at: string
+          credit_cost: number
+          glory_per_5min: number
+          id: string
+          name: string
+          price: number
+          region: string
+          target_glory: number
+        }
+        Insert: {
+          bot_count: number
+          created_at?: string
+          credit_cost: number
+          glory_per_5min: number
+          id?: string
+          name: string
+          price: number
+          region?: string
+          target_glory: number
+        }
+        Update: {
+          bot_count?: number
+          created_at?: string
+          credit_cost?: number
+          glory_per_5min?: number
+          id?: string
+          name?: string
+          price?: number
+          region?: string
+          target_glory?: number
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          credits: number
+          email: string
+          id: string
+          region: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          credits?: number
+          email: string
+          id: string
+          region?: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          credits?: number
+          email?: string
+          id?: string
+          region?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      system_logs: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      redeem_coupon: {
+        Args: { _code: string; _user_id: string }
+        Returns: Json
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +395,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "user"],
+    },
   },
 } as const

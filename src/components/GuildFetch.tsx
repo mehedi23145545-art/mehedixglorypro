@@ -1,75 +1,124 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Search, CheckCircle, AlertCircle } from "lucide-react";
+import { Search } from "lucide-react";
 
-interface GuildInfo {
-  name: string;
-  players: number;
-  logo?: string;
-}
+import guildLogo from "@/assets/guild-logo.png";
 
-const GuildFetch = ({ region, onGuildFetched }: { region: "bd" | "ind"; onGuildFetched: (guild: GuildInfo, guildId: string) => void }) => {
+const GuildFetch = ({ region }: { region: "bd" | "ind" }) => {
   const [guildId, setGuildId] = useState("");
+  const [guild, setGuild] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [guild, setGuild] = useState<GuildInfo | null>(null);
 
   const handleFetch = async () => {
-    if (!guildId.trim()) return;
+    if (!guildId) return;
+
     setLoading(true);
-    setError("");
-    setGuild(null);
     try {
-      const res = await fetch(`https://danger-guild-management.vercel.app/guild?guild_id=${guildId}&region=${region}`);
-      if (!res.ok) throw new Error("Guild not found");
+      const res = await fetch(
+        `https://danger-guild-management.vercel.app/guild?guild_id=${guildId}&region=${region}`
+      );
       const data = await res.json();
-      let name = data.guildName || data.guild_name || data.name || "Unknown Guild";
-      // Try base64 decode
-      try { name = atob(name); } catch {}
-      const info: GuildInfo = { name, players: data.playerCount || data.player_count || data.members || 0, logo: data.logo };
-      setGuild(info);
-      onGuildFetched(info, guildId);
+
+      if (data.status !== "success") throw new Error();
+
+      setGuild(data);
     } catch {
-      setError("Guild not found. Please check the ID and region.");
+      alert("Guild not found");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="glass p-6">
-      <h3 className="font-display text-sm font-bold text-foreground mb-4">🌐 Fetch Guild</h3>
-      <div className="flex gap-3 mb-4">
+    <div className="p-6">
+
+      {/* Input */}
+      <div className="flex gap-3 mb-6">
         <input
           value={guildId}
           onChange={(e) => setGuildId(e.target.value)}
-          className="input-glass flex-1"
           placeholder="Enter Guild ID..."
+          className="input-glass flex-1"
         />
-        <button onClick={handleFetch} disabled={loading} className="btn-neon !px-5 flex items-center gap-2">
-          <Search className="h-4 w-4" />
+        <button onClick={handleFetch} className="btn-neon flex gap-2">
+          <Search className="w-4 h-4" />
           {loading ? "..." : "Fetch"}
         </button>
       </div>
 
-      {error && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 p-3 rounded-lg text-sm" style={{ background: "hsl(0 80% 55% / 0.1)", color: "hsl(0, 80%, 55%)" }}>
-          <AlertCircle className="h-4 w-4" /> {error}
-        </motion.div>
-      )}
-
+      {/* Card */}
       {guild && (
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-4 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-lg bg-secondary flex items-center justify-center overflow-hidden">
-            {guild.logo ? <img src={guild.logo} alt="" className="w-full h-full object-cover" /> : <span className="text-xl">⚔️</span>}
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2">
-              <span className="font-display text-sm font-bold text-foreground">{guild.name}</span>
-              <CheckCircle className="h-4 w-4 text-neon-green" />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-yellow-500 p-5 bg-black shadow-xl"
+        >
+
+          {/* Top Section */}
+          <div className="flex items-center gap-4">
+
+            {/* Logo + Level */}
+            <div className="relative">
+              <img
+                src={guildLogo}
+                className="w-16 h-16 rounded-xl border-2 border-yellow-400 shadow-lg"
+              />
+              <span className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-400 to-orange-500 text-black text-xs px-2 py-0.5 rounded shadow">
+                LV.{guild.GuildLevel}
+              </span>
             </div>
-            <span className="text-xs text-muted-foreground">{guild.players} Players</span>
+
+            {/* Name + ID */}
+            <div className="flex-1">
+              <h2 className="text-white font-bold text-lg">
+                {guild.GuildName}
+              </h2>
+
+              <p className="text-gray-400 text-sm">
+                ID: {guild.GuildId} • {guild.GuildRegion}
+              </p>
+            </div>
+
+            {/* Online Indicator */}
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
           </div>
+
+          {/* Stats Section */}
+          <div className="grid grid-cols-3 gap-4 mt-6 text-sm">
+
+            {/* Members */}
+            <div className="bg-black/40 p-3 rounded-lg border border-white/10">
+              <p className="text-gray-400 text-xs">MEMBERS</p>
+              <p className="text-white font-bold text-lg">
+                {guild.CurrentMembers}/{guild.MaxMembers}
+              </p>
+            </div>
+
+            {/* Leader */}
+            <div className="bg-black/40 p-3 rounded-lg border border-white/10">
+              <p className="text-gray-400 text-xs">LEADER</p>
+              <p className="text-yellow-400 font-bold text-sm truncate">
+                {guild.GuildLeader?.Name}
+              </p>
+            </div>
+
+            {/* Glory */}
+            <div className="bg-black/40 p-3 rounded-lg border border-white/10">
+              <p className="text-gray-400 text-xs">TOTAL GLORY</p>
+              <p className="text-orange-400 font-bold text-lg">
+                {guild.TotalActivityPoints?.toLocaleString()}
+              </p>
+            </div>
+
+          </div>
+
+          {/* Optional Slogan */}
+          {guild.GuildSlogan && (
+            <p className="text-center text-xs text-gray-400 mt-4 italic">
+              "{guild.GuildSlogan}"
+            </p>
+          )}
+
         </motion.div>
       )}
     </div>

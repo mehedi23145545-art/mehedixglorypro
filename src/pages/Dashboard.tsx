@@ -6,65 +6,87 @@ import GuildFetch from "@/components/GuildFetch";
 import PackageSelector from "@/components/PackageSelector";
 import InstanceCard from "@/components/InstanceCard";
 import Footer from "@/components/Footer";
-import { mockPackages, mockInstances, type Package, type UserData } from "@/lib/mockData";
-import { Rocket, ShoppingCart, X, MessageCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Rocket, ShoppingCart, X, MessageCircle, Loader2 } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<UserData | null>(null);
-  const [selectedPkg, setSelectedPkg] = useState<Package | null>(null);
+  const { user, profile, isAdmin, loading: authLoading, signOut, refreshProfile } = useAuth();
+  const [packages, setPackages] = useState<any[]>([]);
+  const [instances, setInstances] = useState<any[]>([]);
+  const [selectedPkg, setSelectedPkg] = useState<any>(null);
   const [guildReady, setGuildReady] = useState(false);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [coupon, setCoupon] = useState("");
   const [couponMsg, setCouponMsg] = useState("");
 
   useEffect(() => {
-    const stored = localStorage.getItem("user");
-    if (!stored) { navigate("/login"); return; }
-    setUser(JSON.parse(stored));
-  }, [navigate]);
+    if (!authLoading && !user) navigate("/login");
+  }, [authLoading, user, navigate]);
 
-  if (!user) return null;
+  useEffect(() => {
+    if (!user) return;
+    // Fetch packages
+    supabase.from("packages").select("*").then(({ data }) => {
+      if (data) setPackages(data);
+    });
+    // Fetch user instances
+    supabase.from("instances").select("*").eq("user_id", user.id).then(({ data }) => {
+      if (data) setInstances(data);
+    });
+  }, [user]);
 
-  const regionPackages = mockPackages.filter((p) => p.region === user.region);
-  const canLaunch = guildReady && selectedPkg && user.credits >= selectedPkg.credit_cost;
+  if (authLoading || !profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-neon-green" />
+      </div>
+    );
+  }
 
-  const handleLaunch = () => {
-    if (!canLaunch || !selectedPkg) return;
-    // Mock: deduct credits
-    const updated = { ...user, credits: user.credits - selectedPkg.credit_cost };
-    setUser(updated);
-    localStorage.setItem("user", JSON.stringify(updated));
+  const regionPackages = packages.filter((p) => p.region === profile.region);
+  const canLaunch = guildReady && selectedPkg && profile.credits >= selectedPkg.credit_cost;
+
+  const handleLaunch = async () => {
+    if (!canLaunch || !selectedPkg || !user) return;
+    // Deduct credits
+    await supabase.from("profiles").update({ credits: profile.credits - selectedPkg.credit_cost }).eq("id", user.id);
+    await refreshProfile();
     alert("🚀 Bots launched! Check your instances below.");
   };
 
-  const handleCoupon = () => {
-    if (coupon.toLowerCase() === "glory100") {
-      const updated = { ...user, credits: user.credits + 100 };
-      setUser(updated);
-      localStorage.setItem("user", JSON.stringify(updated));
-      setCouponMsg("✅ +100৳ added!");
-      setCoupon("");
-    } else {
-      setCouponMsg("❌ Invalid or expired coupon");
+  const handleCoupon = async () => {
+    if (!coupon || !user) return;
+    const { data, error } = await supabase.rpc("redeem_coupon", { _code: coupon, _user_id: user.id });
+    if (error) {
+      setCouponMsg("❌ " + error.message);
+    } else if (data && typeof data === "object") {
+      const result = data as any;
+      if (result.success) {
+        setCouponMsg(`✅ +${result.credits_added}৳ added!`);
+        setCoupon("");
+        await refreshProfile();
+      } else {
+        setCouponMsg("❌ " + result.error);
+      }
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("user");
+  const handleLogout = async () => {
+    await signOut();
     navigate("/");
   };
 
   return (
     <div className="min-h-screen">
-      <Navbar isLoggedIn credits={user.credits} isAdmin={user.isAdmin} onLogout={handleLogout} />
+      <Navbar isLoggedIn credits={profile.credits} isAdmin={isAdmin} onLogout={handleLogout} />
 
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Header */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Region: {user.region === "bd" ? "🇧🇩 Bangladesh" : "🇮🇳 India"}</p>
+            <p className="text-sm text-muted-foreground">Region: {profile.region === "bd" ? "🇧🇩 Bangladesh" : "🇮🇳 India"}</p>
           </div>
           <div className="flex gap-3">
             <button onClick={() => setShowBuyModal(true)} className="btn-neon text-sm !py-2 flex items-center gap-2">
@@ -83,13 +105,10 @@ const Dashboard = () => {
           {couponMsg && <p className="text-sm mt-2 text-muted-foreground">{couponMsg}</p>}
         </div>
 
-        {/* Guild Fetch */}
-        <GuildFetch region={user.region} onGuildFetched={() => setGuildReady(true)} />
+        <GuildFetch region={profile.region} onGuildFetched={() => setGuildReady(true)} />
 
-        {/* Packages */}
-        <PackageSelector packages={regionPackages} selected={selectedPkg} onSelect={setSelectedPkg} credits={user.credits} />
+        <PackageSelector packages={regionPackages} selected={selectedPkg} onSelect={setSelectedPkg} credits={profile.credits} />
 
-        {/* Launch */}
         {selectedPkg && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="glass p-6">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -99,29 +118,24 @@ const Dashboard = () => {
                 <span className="text-muted-foreground ml-4">Cost: </span>
                 <span className="neon-text-green font-semibold">{selectedPkg.credit_cost}৳</span>
                 <span className="text-muted-foreground ml-4">Balance: </span>
-                <span className={`font-semibold ${user.credits >= selectedPkg.credit_cost ? "neon-text-green" : "text-neon-red"}`}>{user.credits}৳</span>
+                <span className={`font-semibold ${profile.credits >= selectedPkg.credit_cost ? "neon-text-green" : "text-neon-red"}`}>{profile.credits}৳</span>
               </div>
-              <button
-                onClick={handleLaunch}
-                disabled={!canLaunch}
-                className={`btn-neon flex items-center gap-2 ${!canLaunch ? "opacity-50 cursor-not-allowed" : ""}`}
-              >
+              <button onClick={handleLaunch} disabled={!canLaunch} className={`btn-neon flex items-center gap-2 ${!canLaunch ? "opacity-50 cursor-not-allowed" : ""}`}>
                 <Rocket className="h-4 w-4" /> Launch Bots
               </button>
             </div>
             {!guildReady && <p className="text-xs text-neon-red mt-2">⚠️ Fetch a guild first</p>}
-            {user.credits < selectedPkg.credit_cost && <p className="text-xs text-neon-red mt-2">🔴 Not enough credits. Please buy or redeem.</p>}
+            {profile.credits < selectedPkg.credit_cost && <p className="text-xs text-neon-red mt-2">🔴 Not enough credits. Please buy or redeem.</p>}
           </motion.div>
         )}
 
-        {/* Instances */}
         <div>
           <h3 className="font-display text-sm font-bold text-foreground mb-4">📦 Your Instances</h3>
-          {mockInstances.length === 0 ? (
+          {instances.length === 0 ? (
             <div className="glass p-8 text-center text-muted-foreground text-sm">No active instances. Launch bots to get started!</div>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
-              {mockInstances.map((inst) => (
+              {instances.map((inst) => (
                 <InstanceCard key={inst.id} instance={inst} />
               ))}
             </div>
@@ -129,7 +143,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Buy Credits Modal */}
       {showBuyModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm px-6">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="glass-strong w-full max-w-sm p-6">
@@ -138,7 +151,7 @@ const Dashboard = () => {
               <button onClick={() => setShowBuyModal(false)} className="text-muted-foreground hover:text-foreground"><X className="h-5 w-5" /></button>
             </div>
             <p className="text-sm text-muted-foreground mb-6">Contact admin on Telegram to purchase credits. Send your User ID and amount in ৳.</p>
-            <p className="text-xs text-muted-foreground mb-4">Your ID: <span className="font-mono neon-text-green">{user.id}</span></p>
+            <p className="text-xs text-muted-foreground mb-4">Your ID: <span className="font-mono neon-text-green">{user?.id?.slice(0, 8)}</span></p>
             <div className="flex gap-3">
               <a href="https://t.me/YOUR_ADMIN_USERNAME" target="_blank" rel="noreferrer" className="btn-neon flex-1 text-center text-sm flex items-center justify-center gap-2">
                 <MessageCircle className="h-4 w-4" /> Get Credits

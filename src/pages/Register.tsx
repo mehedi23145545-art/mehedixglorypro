@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Zap, Eye, EyeOff } from "lucide-react";
+import { Zap, Eye, EyeOff, Loader2 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const Register = () => {
   const [email, setEmail] = useState("");
@@ -9,23 +10,31 @@ const Register = () => {
   const [region, setRegion] = useState<"bd" | "ind">("bd");
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { signUp } = useAuth();
 
-  const handleRegister = (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email || password.length < 4) {
-      setError("Please fill all fields (password min 4 chars)");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
-    localStorage.setItem("user", JSON.stringify({ id: "user-" + Date.now(), email, credits: 0, region, isAdmin: false }));
-    navigate("/dashboard");
+    setLoading(true);
+    const { error } = await signUp(email, password, region);
+    setLoading(false);
+    if (error) {
+      setError(error);
+    } else {
+      navigate("/dashboard");
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-6 relative">
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute bottom-1/3 right-1/3 w-80 h-80 rounded-full opacity-10 blur-3xl" style={{ background: "hsl(200, 100%, 50%)" }} />
+        <div className="absolute bottom-1/3 right-1/3 w-80 h-80 rounded-full opacity-10 blur-3xl" style={{ background: "hsl(var(--accent))" }} />
       </div>
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass-strong w-full max-w-md p-8 relative z-10">
         <div className="flex items-center justify-center gap-2 mb-8">
@@ -33,7 +42,7 @@ const Register = () => {
           <span className="font-display text-lg font-bold gradient-text">MEHEDI X GLORY</span>
         </div>
         <h2 className="font-display text-xl font-bold text-center mb-6 text-foreground">Create Account</h2>
-        {error && <div className="mb-4 p-3 rounded-lg text-sm text-center" style={{ background: "hsl(0 80% 55% / 0.15)", color: "hsl(0, 80%, 55%)" }}>{error}</div>}
+        {error && <div className="mb-4 p-3 rounded-lg text-sm text-center bg-destructive/15 text-destructive">{error}</div>}
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Email</label>
@@ -64,7 +73,10 @@ const Register = () => {
               ))}
             </div>
           </div>
-          <button type="submit" className="btn-neon w-full">Register</button>
+          <button type="submit" disabled={loading} className="btn-neon w-full flex items-center justify-center gap-2">
+            {loading && <Loader2 className="h-4 w-4 animate-spin" />}
+            {loading ? "Creating account..." : "Register"}
+          </button>
         </form>
         <p className="text-center text-sm text-muted-foreground mt-6">
           Already have an account? <Link to="/login" className="neon-text-green hover:underline">Login</Link>

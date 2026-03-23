@@ -153,7 +153,7 @@ const Dashboard = () => {
             <p className="text-sm text-muted-foreground mb-6">Contact admin on Telegram to purchase credits. Send your User ID and amount in ৳.</p>
             <p className="text-xs text-muted-foreground mb-4">Your ID: <span className="font-mono neon-text-green">{user?.id?.slice(0, 8)}</span></p>
             <div className="flex gap-3">
-              <a href="https://t.me/YOUR_ADMIN_USERNAME" target="_blank" rel="noreferrer" className="btn-neon flex-1 text-center text-sm flex items-center justify-center gap-2">
+              <a href="https://t.me/Proxaura" target="_blank" rel="noreferrer" className="btn-neon flex-1 text-center text-sm flex items-center justify-center gap-2">
                 <MessageCircle className="h-4 w-4" /> Get Credits
               </a>
               <button onClick={() => setShowBuyModal(false)} className="btn-danger flex-1 text-sm">Cancel</button>
@@ -168,3 +168,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+Dashboard;

@@ -93,14 +93,15 @@ const Dashboard = () => {
       <div className="max-w-6xl mx-auto px-6 py-8 space-y-8">
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="font-display text-2xl font-bold text-foreground">Dashboard</h1>
+            <h1 className="text-2xl font-bold">Dashboard</h1>
             <p className="text-sm text-muted-foreground">
               Region: {profile.region === "bd" ? "🇧🇩 Bangladesh" : "🇮🇳 India"}
             </p>
           </div>
+
           <button
             onClick={() => setShowBuyModal(true)}
-            className="btn-neon text-sm !py-2 flex items-center gap-2"
+            className="btn-neon text-sm flex items-center gap-2"
           >
             <ShoppingCart className="h-4 w-4" /> Buy Credits
           </button>
@@ -108,7 +109,7 @@ const Dashboard = () => {
 
         {/* Coupon */}
         <div className="glass p-5">
-          <h3 className="font-display text-sm font-bold text-foreground mb-3">🎟️ Redeem Coupon</h3>
+          <h3 className="text-sm font-bold mb-3">🎟️ Redeem Coupon</h3>
           <div className="flex gap-3">
             <input
               value={coupon}
@@ -116,11 +117,11 @@ const Dashboard = () => {
               className="input-glass flex-1"
               placeholder="Enter coupon code..."
             />
-            <button onClick={handleCoupon} className="btn-neon-outline !py-2 text-sm">
+            <button onClick={handleCoupon} className="btn-neon-outline text-sm">
               Redeem
             </button>
           </div>
-          {couponMsg && <p className="text-sm mt-2 text-muted-foreground">{couponMsg}</p>}
+          {couponMsg && <p className="text-sm mt-2">{couponMsg}</p>}
         </div>
 
         <PackageSelector
@@ -131,46 +132,37 @@ const Dashboard = () => {
         />
 
         {selectedPkg && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass p-6">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="text-sm">
-                <span className="text-muted-foreground">Package: </span>
-                <span className="font-semibold">{selectedPkg.name}</span>
-                <span className="ml-4 text-muted-foreground">Cost: </span>
-                <span className="neon-text-green font-semibold">{selectedPkg.credit_cost}৳</span>
-                <span className="ml-4 text-muted-foreground">Balance: </span>
-                <span
-                  className={`font-semibold ${
-                    profile.credits >= selectedPkg.credit_cost ? "neon-text-green" : "text-red-500"
-                  }`}
-                >
-                  {profile.credits}৳
-                </span>
+          <div className="glass p-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p>Package: {selectedPkg.name}</p>
+                <p>Cost: {selectedPkg.credit_cost}৳</p>
+                <p>Balance: {profile.credits}৳</p>
               </div>
 
               <button
                 onClick={handleLaunch}
                 disabled={!canLaunch}
-                className={`btn-neon flex items-center gap-2 ${
-                  !canLaunch ? "opacity-50 cursor-not-allowed" : ""
-                }`}
+                className="btn-neon flex items-center gap-2"
               >
-                <Rocket className="h-4 w-4" /> Launch Bots
+                <Rocket className="h-4 w-4" /> Launch
               </button>
             </div>
 
             {profile.credits < selectedPkg.credit_cost && (
-              <p className="text-xs text-red-500 mt-2">Not enough credits. Please buy or redeem.</p>
+              <p className="text-red-500 text-xs mt-2">
+                Not enough credits
+              </p>
             )}
-          </motion.div>
+          </div>
         )}
 
         {/* Instances */}
         <div>
-          <h3 className="font-display text-sm font-bold text-foreground mb-4">📦 Your Instances</h3>
+          <h3 className="text-sm font-bold mb-4">📦 Your Instances</h3>
           {instances.length === 0 ? (
-            <div className="glass p-8 text-center text-muted-foreground text-sm">
-              No active instances yet.
+            <div className="glass p-6 text-center text-sm">
+              No active instances yet
             </div>
           ) : (
             <div className="grid md:grid-cols-2 gap-4">
@@ -184,7 +176,38 @@ const Dashboard = () => {
 
       {/* BUY MODAL */}
       {showBuyModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/60 backdrop-blur-sm px-6">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="glass p-6 w-full max-w-sm">
+            <div className="flex justify-between mb-4">
+              <h3>Buy Credits</h3>
+              <button onClick={() => setShowBuyModal(false)}>
+                <X />
+              </button>
+            </div>
+
+            <p className="text-sm mb-4">
+              Contact admin on Telegram
+            </p>
+
+            <a
+              href={`https://t.me/Proxaura?text=I want to buy credits. User ID: ${user?.id}`}
+              target="_blank"
+              rel="noreferrer"
+              className="btn-neon w-full flex items-center justify-center gap-2"
+            >
+              <MessageCircle className="h-4 w-4" />
+              Contact on Telegram
+            </a>
+          </div>
+        </div>
+      )}
+
+      <Footer />
+    </div>
+  );
+};
+
+export default Dashboard;-background/60 backdrop-blur-sm px-6">
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-strong w-full max-w-sm p-6">
             <div className="flex justify-between mb-4">
               <h3 className="font-bold">Buy Credits</h3>

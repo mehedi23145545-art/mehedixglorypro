@@ -7,7 +7,7 @@ import InstanceCard from "@/components/InstanceCard";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Rocket, ShoppingCart, X, MessageCircle, Loader2 } from "lucide-react";
+import { Rocket, ShoppingCart, X, MessageCircle, Loader2, Search } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +18,9 @@ const Dashboard = () => {
   const [selectedPkg, setSelectedPkg] = useState<any>(null);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [coupon, setCoupon] = useState("");
+  const [guildId, setGuildId] = useState("");
+  const [guildData, setGuildData] = useState<any>(null);
+  const [guildLoading, setGuildLoading] = useState(false);
   const [couponMsg, setCouponMsg] = useState("");
 
   useEffect(() => {
@@ -46,6 +49,23 @@ const Dashboard = () => {
 
   const regionPackages = packages.filter((p) => p.region === profile.region);
   const canLaunch = selectedPkg && profile.credits >= selectedPkg.credit_cost;
+  const handleFetchGuild = async () => {
+    if (!guildId || !profile) return;
+    setGuildLoading(true);
+    try {
+      const res = await fetch(
+        `https://danger-guild-management.vercel.app/guild?guild_id=${guildId}&region=${profile.region}`
+      );
+      const data = await res.json();
+      if (data.status !== "success") throw new Error();
+      setGuildData(data);
+    } catch {
+      setGuildData(null);
+      alert("Guild not found");
+    } finally {
+      setGuildLoading(false);
+    }
+  };
 
   const handleLaunch = async () => {
     if (!canLaunch || !selectedPkg || !user) return;
@@ -132,26 +152,79 @@ const Dashboard = () => {
         />
 
         {selectedPkg && (
-          <div className="glass p-6">
+          <div className="glass p-6 space-y-4">
             <div className="flex justify-between items-center">
               <div>
                 <p>Package: {selectedPkg.name}</p>
                 <p>Cost: {selectedPkg.credit_cost}৳</p>
                 <p>Balance: {profile.credits}৳</p>
               </div>
+            </div>
+
+            {/* Guild ID Input */}
+            <div>
+              <label className="text-xs text-muted-foreground mb-1 block">Guild ID (required)</label>
+              <input
+                value={guildId}
+                onChange={(e) => setGuildId(e.target.value)}
+                placeholder="Enter Guild ID..."
+                className="input-glass w-full"
+              />
+            </div>
+
+            {/* Guild Info Preview */}
+            {guildData && (
+              <div className="rounded-xl border border-yellow-500/50 p-4 bg-black/40">
+                <div className="flex items-center gap-3">
+                  <div>
+                    <h3 className="text-foreground font-bold">{guildData.GuildName}</h3>
+                    <p className="text-xs text-muted-foreground">
+                      ID: {guildData.GuildId} • {guildData.GuildRegion} • LV.{guildData.GuildLevel}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
+                  <div className="glass p-2 rounded text-center">
+                    <p className="text-muted-foreground">Members</p>
+                    <p className="text-foreground font-bold">{guildData.CurrentMembers}/{guildData.MaxMembers}</p>
+                  </div>
+                  <div className="glass p-2 rounded text-center">
+                    <p className="text-muted-foreground">Leader</p>
+                    <p className="text-yellow-400 font-bold truncate">{guildData.GuildLeader?.Name}</p>
+                  </div>
+                  <div className="glass p-2 rounded text-center">
+                    <p className="text-muted-foreground">Glory</p>
+                    <p className="text-orange-400 font-bold">{guildData.TotalActivityPoints?.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                onClick={handleFetchGuild}
+                disabled={!guildId || guildLoading}
+                className="btn-neon-outline text-sm flex items-center gap-2"
+              >
+                <Search className="h-4 w-4" /> {guildLoading ? "Fetching..." : "Fetch Guild"}
+              </button>
 
               <button
                 onClick={handleLaunch}
-                disabled={!canLaunch}
+                disabled={!canLaunch || !guildData}
                 className="btn-neon flex items-center gap-2"
               >
                 <Rocket className="h-4 w-4" /> Launch
               </button>
             </div>
 
+            {!guildData && guildId && (
+              <p className="text-xs text-muted-foreground">⚡ Guild fetch করো আগে Launch করার জন্য</p>
+            )}
+
             {profile.credits < selectedPkg.credit_cost && (
-              <p className="text-red-500 text-xs mt-2">
-                Not enough credits
+              <p className="text-red-500 text-xs">
+                🔴 Not enough credits
               </p>
             )}
           </div>

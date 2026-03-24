@@ -27,6 +27,7 @@ const Admin = () => {
   const [bots, setBots] = useState<any[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [allInstances, setAllInstances] = useState<any[]>([]);
 
   // Modal states
   const [showPkgForm, setShowPkgForm] = useState(false);

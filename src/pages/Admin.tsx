@@ -68,6 +68,9 @@ const Admin = () => {
     } else if (activeTab === "coupons") {
       const { data } = await supabase.from("coupons").select("*").order("created_at");
       if (data) setCoupons(data);
+    } else if (activeTab === "instances") {
+      const { data } = await supabase.from("instances").select("*").order("started_at", { ascending: false });
+      if (data) setAllInstances(data);
     } else if (activeTab === "logs") {
       const { data } = await supabase.from("system_logs").select("*").order("created_at", { ascending: false }).limit(50);
       if (data) setLogs(data);

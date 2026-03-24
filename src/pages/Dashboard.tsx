@@ -49,8 +49,25 @@ const Dashboard = () => {
 
   const regionPackages = packages.filter((p) => p.region === profile.region);
   const canLaunch = selectedPkg && profile.credits >= selectedPkg.credit_cost;
+  const handleFetchGuild = async () => {
+    if (!guildId || !profile) return;
+    setGuildLoading(true);
+    try {
+      const res = await fetch(
+        `https://danger-guild-management.vercel.app/guild?guild_id=${guildId}&region=${profile.region}`
+      );
+      const data = await res.json();
+      if (data.status !== "success") throw new Error();
+      setGuildData(data);
+    } catch {
+      setGuildData(null);
+      alert("Guild not found");
+    } finally {
+      setGuildLoading(false);
+    }
+  };
 
-  const handleLaunch = async () => {
+
     if (!canLaunch || !selectedPkg || !user) return;
 
     await supabase

@@ -162,8 +162,32 @@ const Dashboard = () => {
               </div>
             </div>
 
-            {/* Guild ID Input */}
-            <div>
+            {/* Region + Guild ID Input */}
+            <div className="space-y-3">
+              <label className="text-xs text-muted-foreground mb-1 block">Region</label>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { setGuildRegion("bd"); setGuildData(null); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-semibold transition-all ${
+                    guildRegion === "bd"
+                      ? "border-neon-green bg-neon-green/10 text-neon-green shadow-[0_0_10px_rgba(0,255,100,0.2)]"
+                      : "border-white/10 text-muted-foreground hover:border-white/30"
+                  }`}
+                >
+                  🇧🇩 Bangladesh
+                </button>
+                <button
+                  onClick={() => { setGuildRegion("ind"); setGuildData(null); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg border text-sm font-semibold transition-all ${
+                    guildRegion === "ind"
+                      ? "border-neon-green bg-neon-green/10 text-neon-green shadow-[0_0_10px_rgba(0,255,100,0.2)]"
+                      : "border-white/10 text-muted-foreground hover:border-white/30"
+                  }`}
+                >
+                  🇮🇳 India
+                </button>
+              </div>
+
               <label className="text-xs text-muted-foreground mb-1 block">Guild ID (required)</label>
               <input
                 value={guildId}

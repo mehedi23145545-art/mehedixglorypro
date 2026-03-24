@@ -7,13 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Package, Users, Bot, Ticket, FileText, Plus, Trash2, Edit, Loader2, Save, X } from "lucide-react";
 
-type Tab = "packages" | "users" | "bots" | "coupons" | "logs";
+type Tab = "packages" | "users" | "bots" | "coupons" | "instances" | "logs";
 
 const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "packages", label: "Packages", icon: Package },
   { id: "users", label: "Users", icon: Users },
   { id: "bots", label: "Bots", icon: Bot },
   { id: "coupons", label: "Coupons", icon: Ticket },
+  { id: "instances", label: "Instances", icon: FileText },
   { id: "logs", label: "Logs", icon: FileText },
 ];
 
@@ -26,6 +27,7 @@ const Admin = () => {
   const [bots, setBots] = useState<any[]>([]);
   const [coupons, setCoupons] = useState<any[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
+  const [allInstances, setAllInstances] = useState<any[]>([]);
 
   // Modal states
   const [showPkgForm, setShowPkgForm] = useState(false);
@@ -66,6 +68,9 @@ const Admin = () => {
     } else if (activeTab === "coupons") {
       const { data } = await supabase.from("coupons").select("*").order("created_at");
       if (data) setCoupons(data);
+    } else if (activeTab === "instances") {
+      const { data } = await supabase.from("instances").select("*").order("started_at", { ascending: false });
+      if (data) setAllInstances(data);
     } else if (activeTab === "logs") {
       const { data } = await supabase.from("system_logs").select("*").order("created_at", { ascending: false }).limit(50);
       if (data) setLogs(data);
@@ -137,6 +142,21 @@ const Admin = () => {
 
   const deleteCoupon = async (id: string) => {
     await supabase.from("coupons").delete().eq("id", id);
+    loadData();
+  };
+
+  const deleteBot = async (id: string) => {
+    await supabase.from("bots").delete().eq("id", id);
+    loadData();
+  };
+
+  const updateInstanceStatus = async (id: string, status: string) => {
+    await supabase.from("instances").update({ status }).eq("id", id);
+    loadData();
+  };
+
+  const deleteInstance = async (id: string) => {
+    await supabase.from("instances").delete().eq("id", id);
     loadData();
   };
 
@@ -289,17 +309,20 @@ const Admin = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-muted-foreground border-b border-border">
-                    <th className="pb-3 font-medium">UID</th><th className="pb-3 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bots.map((b) => (
-                    <tr key={b.id} className="border-b border-border/50">
-                      <td className="py-3 font-mono text-foreground">{b.uid}</td>
-                      <td className="py-3"><span className={b.status === "available" ? "status-running" : "status-stopped"}>{b.status}</span></td>
-                    </tr>
-                  ))}
+                   <tr className="text-left text-muted-foreground border-b border-border">
+                     <th className="pb-3 font-medium">UID</th><th className="pb-3 font-medium">Status</th><th className="pb-3 font-medium">Actions</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {bots.map((b) => (
+                     <tr key={b.id} className="border-b border-border/50">
+                       <td className="py-3 font-mono text-foreground">{b.uid}</td>
+                       <td className="py-3"><span className={b.status === "available" ? "status-running" : "status-stopped"}>{b.status}</span></td>
+                       <td className="py-3">
+                         <button onClick={() => deleteBot(b.id)} className="text-neon-red hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                       </td>
+                     </tr>
+                   ))}
                 </tbody>
               </table>
             </div>
@@ -352,7 +375,65 @@ const Admin = () => {
           </motion.div>
         )}
 
-        {/* LOGS */}
+        {/* INSTANCES */}
+        {activeTab === "instances" && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+            <h2 className="font-display text-lg font-bold text-foreground mb-4">All Instances</h2>
+            <div className="grid grid-cols-3 gap-3 mb-6">
+              <div className="stat-card neon-glow-green">
+                <h3 className="neon-text-green">{allInstances.filter(i => i.status === "running").length}</h3>
+                <p className="text-xs text-muted-foreground">Running</p>
+              </div>
+              <div className="stat-card neon-glow-red">
+                <h3 className="text-neon-red">{allInstances.filter(i => i.status === "stopped").length}</h3>
+                <p className="text-xs text-muted-foreground">Stopped</p>
+              </div>
+              <div className="stat-card">
+                <h3 className="text-foreground">{allInstances.length}</h3>
+                <p className="text-xs text-muted-foreground">Total</p>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-muted-foreground border-b border-border">
+                    <th className="pb-3 font-medium">Guild</th>
+                    <th className="pb-3 font-medium">Region</th>
+                    <th className="pb-3 font-medium">Bots</th>
+                    <th className="pb-3 font-medium">Glory</th>
+                    <th className="pb-3 font-medium">Status</th>
+                    <th className="pb-3 font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allInstances.map((inst) => (
+                    <tr key={inst.id} className="border-b border-border/50">
+                      <td className="py-3">
+                        <span className="text-foreground font-medium">{inst.guild_name}</span>
+                        <span className="text-muted-foreground text-xs block">ID: {inst.guild_id}</span>
+                      </td>
+                      <td className="py-3 text-muted-foreground">{inst.region === "bd" ? "🇧🇩" : "🇮🇳"}</td>
+                      <td className="py-3 text-muted-foreground">{inst.bot_count}</td>
+                      <td className="py-3 neon-text-green">{inst.earned_glory}/{inst.target_glory}</td>
+                      <td className="py-3"><span className={inst.status === "running" ? "status-running" : "status-stopped"}>{inst.status}</span></td>
+                      <td className="py-3 flex gap-2">
+                        {inst.status === "running" ? (
+                          <button onClick={() => updateInstanceStatus(inst.id, "stopped")} className="btn-danger !py-1 !px-3 text-xs">Stop</button>
+                        ) : (
+                          <button onClick={() => updateInstanceStatus(inst.id, "running")} className="btn-neon !py-1 !px-3 text-xs">Start</button>
+                        )}
+                        <button onClick={() => deleteInstance(inst.id)} className="text-neon-red hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {allInstances.length === 0 && <div className="glass p-8 text-center text-muted-foreground text-sm">No instances yet.</div>}
+          </motion.div>
+        )}
+
+
         {activeTab === "logs" && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <h2 className="font-display text-lg font-bold text-foreground mb-4">System Logs</h2>

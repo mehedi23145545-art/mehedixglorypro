@@ -207,49 +207,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;-background/60 backdrop-blur-sm px-6">
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-strong w-full max-w-sm p-6">
-            <div className="flex justify-between mb-4">
-              <h3 className="font-bold">Buy Credits</h3>
-              <button onClick={() => setShowBuyModal(false)}>
-                <X />
-              </button>
-            </div>
-
-            <p className="text-sm mb-4">
-              Contact admin on Telegram. Send your User ID and amount.
-            </p>
-
-            <a
-              href={`https://t.me/yourusername?text=I want to buy credits. User ID: ${user?.id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="btn-neon w-full flex items-center justify-center gap-2"
-            >
-              <MessageCircle /> Contact on Telegram
-            </a>
-          </motion.div>
-        </div>
-      )}
-
-      <Footer />
-    </div>
-  );
-};
-
-export default Dashboard; gap-2">
-                <MessageCircle className="h-4 w-4" /> Get Credits
-              </a>
-              <button onClick={() => setShowBuyModal(false)} className="btn-danger flex-1 text-sm">Cancel</button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      <Footer />
-    </div>
-  );
-};
-
 export default Dashboard;
-Dashboard;

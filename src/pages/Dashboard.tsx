@@ -22,6 +22,7 @@ const Dashboard = () => {
   const [guildData, setGuildData] = useState<any>(null);
   const [guildLoading, setGuildLoading] = useState(false);
   const [couponMsg, setCouponMsg] = useState("");
+  const [guildRegion, setGuildRegion] = useState<"bd" | "ind">(profile?.region as "bd" | "ind" || "bd");
 
   useEffect(() => {
     if (!authLoading && !user) navigate("/login");

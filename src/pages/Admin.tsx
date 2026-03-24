@@ -309,17 +309,20 @@ const Admin = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-muted-foreground border-b border-border">
-                    <th className="pb-3 font-medium">UID</th><th className="pb-3 font-medium">Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {bots.map((b) => (
-                    <tr key={b.id} className="border-b border-border/50">
-                      <td className="py-3 font-mono text-foreground">{b.uid}</td>
-                      <td className="py-3"><span className={b.status === "available" ? "status-running" : "status-stopped"}>{b.status}</span></td>
-                    </tr>
-                  ))}
+                   <tr className="text-left text-muted-foreground border-b border-border">
+                     <th className="pb-3 font-medium">UID</th><th className="pb-3 font-medium">Status</th><th className="pb-3 font-medium">Actions</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   {bots.map((b) => (
+                     <tr key={b.id} className="border-b border-border/50">
+                       <td className="py-3 font-mono text-foreground">{b.uid}</td>
+                       <td className="py-3"><span className={b.status === "available" ? "status-running" : "status-stopped"}>{b.status}</span></td>
+                       <td className="py-3">
+                         <button onClick={() => deleteBot(b.id)} className="text-neon-red hover:text-destructive"><Trash2 className="h-4 w-4" /></button>
+                       </td>
+                     </tr>
+                   ))}
                 </tbody>
               </table>
             </div>

@@ -145,6 +145,21 @@ const Admin = () => {
     loadData();
   };
 
+  const deleteBot = async (id: string) => {
+    await supabase.from("bots").delete().eq("id", id);
+    loadData();
+  };
+
+  const updateInstanceStatus = async (id: string, status: string) => {
+    await supabase.from("instances").update({ status }).eq("id", id);
+    loadData();
+  };
+
+  const deleteInstance = async (id: string) => {
+    await supabase.from("instances").delete().eq("id", id);
+    loadData();
+  };
+
   if (authLoading || !isAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">

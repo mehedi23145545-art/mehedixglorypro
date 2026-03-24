@@ -7,7 +7,7 @@ import InstanceCard from "@/components/InstanceCard";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { Rocket, ShoppingCart, X, MessageCircle, Loader2 } from "lucide-react";
+import { Rocket, ShoppingCart, X, MessageCircle, Loader2, Search } from "lucide-react";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -18,6 +18,9 @@ const Dashboard = () => {
   const [selectedPkg, setSelectedPkg] = useState<any>(null);
   const [showBuyModal, setShowBuyModal] = useState(false);
   const [coupon, setCoupon] = useState("");
+  const [guildId, setGuildId] = useState("");
+  const [guildData, setGuildData] = useState<any>(null);
+  const [guildLoading, setGuildLoading] = useState(false);
   const [couponMsg, setCouponMsg] = useState("");
 
   useEffect(() => {

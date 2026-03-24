@@ -67,7 +67,7 @@ const Dashboard = () => {
     }
   };
 
-
+  const handleLaunch = async () => {
     if (!canLaunch || !selectedPkg || !user) return;
 
     await supabase

@@ -55,7 +55,7 @@ const Dashboard = () => {
     setGuildLoading(true);
     try {
       const res = await fetch(
-        `https://danger-guild-management.vercel.app/guild?guild_id=${guildId}&region=${profile.region}`
+        `https://danger-guild-management.vercel.app/guild?guild_id=${guildId}&region=${guildRegion}`
       );
       const data = await res.json();
       if (data.status !== "success") throw new Error();

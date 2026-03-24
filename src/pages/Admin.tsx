@@ -7,13 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { Package, Users, Bot, Ticket, FileText, Plus, Trash2, Edit, Loader2, Save, X } from "lucide-react";
 
-type Tab = "packages" | "users" | "bots" | "coupons" | "logs";
+type Tab = "packages" | "users" | "bots" | "coupons" | "instances" | "logs";
 
 const tabs: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "packages", label: "Packages", icon: Package },
   { id: "users", label: "Users", icon: Users },
   { id: "bots", label: "Bots", icon: Bot },
   { id: "coupons", label: "Coupons", icon: Ticket },
+  { id: "instances", label: "Instances", icon: FileText },
   { id: "logs", label: "Logs", icon: FileText },
 ];
 
